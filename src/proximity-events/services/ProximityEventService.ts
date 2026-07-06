@@ -7,8 +7,11 @@ type ProximityEventRow = Database['public']['Tables']['proximity_events']['Row']
 type ProximityEventInsert = Database['public']['Tables']['proximity_events']['Insert'];
 type ProximityEventUpdate = Database['public']['Tables']['proximity_events']['Update'];
 
+import { AiInferenceService } from '../../ai/services/AiInferenceService';
+
 @Injectable()
 export class ProximityEventService {
+  constructor(private readonly aiInferenceService: AiInferenceService) {}
   async getAllProximityEvents(): Promise<ProximityEvent[]> {
     const { data, error } = await supabase
       .from('proximity_events')
@@ -74,6 +77,24 @@ export class ProximityEventService {
 
     if (error) {
       throw new Error(`Error creating proximity event: ${error.message}`);
+    }
+
+    if (proximityEventData.type === 'enter' && proximityEventData.user_id) {
+      this.aiInferenceService.evaluateProximityEvent(
+        proximityEventData.user_id,
+        data.id,
+        {
+          time: new Date().toLocaleTimeString(),
+          isWeekend: [0, 6].includes(new Date().getDay()),
+          userHabitsSummary: 'MVP basic pattern',
+          currentLocationName: proximityEventData.home_location_name || 'Home'
+        },
+        [] // Dispositivos se consultarían aquí
+      ).then(decision => {
+        if (decision && decision.confidence > 0.70) {
+          console.log('IA Decision applied:', decision);
+        }
+      }).catch(e => console.error('AI inference error:', e));
     }
 
     return this.getProximityEventById(data.id);

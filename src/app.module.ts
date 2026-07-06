@@ -9,6 +9,7 @@ import { LocationModule } from './locations/LocationModule';
 import { ProfileModule } from './profiles/ProfileModule';
 import { SensorModule } from './sensors/SensorModule';
 import { ProximityEventModule } from './proximity-events/ProximityEventModule';
+import { AiModule } from './ai/AiModule';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { ProximityEventModule } from './proximity-events/ProximityEventModule';
     LocationModule,
     ProfileModule,
     SensorModule,
-    ProximityEventModule
+    ProximityEventModule,
+    AiModule
   ],
   controllers: [AppController],
   providers: [
