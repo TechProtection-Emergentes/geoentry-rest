@@ -8,10 +8,14 @@ type ProximityEventInsert = Database['public']['Tables']['proximity_events']['In
 type ProximityEventUpdate = Database['public']['Tables']['proximity_events']['Update'];
 
 import { AiInferenceService } from '../../ai/services/AiInferenceService';
+import { SensorService } from '../../sensors/services/SensorService';
 
 @Injectable()
 export class ProximityEventService {
-  constructor(private readonly aiInferenceService: AiInferenceService) {}
+  constructor(
+    private readonly aiInferenceService: AiInferenceService,
+    private readonly sensorService: SensorService
+  ) {}
   async getAllProximityEvents(): Promise<ProximityEvent[]> {
     const { data, error } = await supabase
       .from('proximity_events')
@@ -80,21 +84,45 @@ export class ProximityEventService {
     }
 
     if (proximityEventData.type === 'enter' && proximityEventData.user_id) {
-      this.aiInferenceService.evaluateProximityEvent(
-        proximityEventData.user_id,
-        data.id,
-        {
-          time: new Date().toLocaleTimeString(),
-          isWeekend: [0, 6].includes(new Date().getDay()),
-          userHabitsSummary: 'MVP basic pattern',
-          currentLocationName: proximityEventData.home_location_name || 'Home'
-        },
-        [] // Dispositivos se consultarían aquí
-      ).then(decision => {
-        if (decision && decision.confidence > 0.70) {
-          console.log('IA Decision applied:', decision);
-        }
-      }).catch(e => console.error('AI inference error:', e));
+      const userId = proximityEventData.user_id;
+      this.sensorService.getSensorsByUser(userId).then(sensors => {
+        // Build dynamic context based on current sensor states
+        const onSensors = sensors.filter(s => s.isActive).map(s => s.name);
+        const offSensors = sensors.filter(s => !s.isActive).map(s => s.name);
+        
+        let dynamicHabits = 'El usuario acaba de llegar. ';
+        if (onSensors.length > 0) dynamicHabits += `Actualmente tiene encendido: ${onSensors.join(', ')}. `;
+        if (offSensors.length > 0) dynamicHabits += `Actualmente tiene apagado: ${offSensors.join(', ')}. `;
+        dynamicHabits += 'Decide qué dispositivos (actualmente apagados) deberías encender para su confort basándote en la hora.';
+
+        this.aiInferenceService.evaluateProximityEvent(
+          userId,
+          data.id,
+          {
+            time: new Date().toLocaleTimeString(),
+            isWeekend: [0, 6].includes(new Date().getDay()),
+            userHabitsSummary: dynamicHabits,
+            currentLocationName: proximityEventData.home_location_name || 'Home'
+          },
+          sensors.map(s => ({
+            id: s.id,
+            name: s.name,
+            type: s.sensor_type,
+            isActive: s.isActive
+          }))
+        ).then(decision => {
+          if (decision && decision.confidence > 0.70 && decision.actions) {
+            console.log('IA Decision applied:', decision);
+            for (const action of decision.actions) {
+              if (action.deviceId && action.targetState !== undefined) {
+                this.sensorService.updateSensorStatus(action.deviceId, action.targetState)
+                  .then(() => console.log(`[AI AUTOMATION] Sensor ${action.deviceId} updated to ${action.targetState} via AI.`))
+                  .catch(err => console.error(`[AI AUTOMATION ERROR] Error updating sensor via AI: ${err.message}`));
+              }
+            }
+          }
+        }).catch(e => console.error('AI inference error:', e));
+      }).catch(e => console.error('Error fetching sensors for AI context:', e));
     }
 
     return this.getProximityEventById(data.id);

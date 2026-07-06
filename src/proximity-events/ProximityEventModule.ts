@@ -4,9 +4,10 @@ import { ProximityEventService } from './services/ProximityEventService';
 import { ProximityEventRepository } from './repository/ProximityEventRepository';
 
 import { AiModule } from '../ai/AiModule';
+import { SensorModule } from '../sensors/SensorModule';
 
 @Module({
-  imports: [AiModule],
+  imports: [AiModule, SensorModule],
   controllers: [ProximityEventController],
   providers: [ProximityEventService, ProximityEventRepository],
   exports: [ProximityEventService, ProximityEventRepository],

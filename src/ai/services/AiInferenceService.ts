@@ -72,7 +72,16 @@ export class AiInferenceService {
         })
       );
 
-      const aiResponse: AiInferenceDecision = JSON.parse(data.response);
+      let aiResponse: AiInferenceDecision;
+      try {
+        // Limpiar posible formato Markdown de Llama3 (```json ... ```)
+        const cleanedResponse = data.response.replace(/```json/gi, '').replace(/```/g, '').trim();
+        aiResponse = JSON.parse(cleanedResponse);
+      } catch (parseError) {
+        this.logger.error('La respuesta de Ollama no es un JSON válido o la estructura es incorrecta', data.response);
+        return null;
+      }
+
       await this.saveInferenceLog(userId, eventId, snapshot, prompt, aiResponse);
       return aiResponse;
     } catch (error) {
