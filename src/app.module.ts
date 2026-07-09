@@ -10,6 +10,7 @@ import { ProfileModule } from './profiles/ProfileModule';
 import { SensorModule } from './sensors/SensorModule';
 import { ProximityEventModule } from './proximity-events/ProximityEventModule';
 import { AiModule } from './ai/AiModule';
+import { HouseholdsModule } from './households/HouseholdsModule';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { AiModule } from './ai/AiModule';
     ProfileModule,
     SensorModule,
     ProximityEventModule,
-    AiModule
+    AiModule,
+    HouseholdsModule
   ],
   controllers: [AppController],
   providers: [

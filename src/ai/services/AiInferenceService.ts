@@ -129,5 +129,32 @@ export class AiInferenceService {
     if (error) {
       this.logger.error('Fallo al guardar el log de inferencia en Supabase: ' + error.message);
     }
+
+    // 🚨 Nueva lógica de Alertas de Seguridad Centralizada 🚨
+    // Si la IA tiene muy baja confianza o reporta un fallo, enviar alerta al Household Web
+    if (aiResponse.confidence < 0.7) {
+      try {
+        // Buscar a qué Household pertenece el usuario
+        const { data: householdMember } = await supabase
+          .from('household_members')
+          .select('household_id')
+          .eq('profile_id', userId)
+          .limit(1)
+          .single();
+
+        if (householdMember?.household_id) {
+          // Generar alerta crítica visualizada centralmente en el Dashboard Web
+          await supabase.from('alerts').insert({
+            household_id: householdMember.household_id,
+            title: 'Incertidumbre en IA Predictiva',
+            message: `La IA de GeoEntry intentó ejecutar una rutina en ${snapshot.currentLocationName}, pero el nivel de confianza fue de solo ${(aiResponse.confidence * 100).toFixed(0)}%. Por favor, revisa tus dispositivos.`,
+            severity: 'CRITICAL',
+            is_read: false
+          });
+        }
+      } catch (alertError) {
+        this.logger.error('Error insertando alerta crítica de IA:', alertError);
+      }
+    }
   }
 }
