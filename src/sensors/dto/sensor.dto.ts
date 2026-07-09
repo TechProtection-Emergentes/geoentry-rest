@@ -9,12 +9,12 @@ export class CreateSensorDto {
 
   @ApiProperty({ 
     description: 'Tipo de dispositivo', 
-    enum: ['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker']
+    enum: ['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker', 'smart_lock']
   })
   @IsString()
   @IsNotEmpty()
-  @IsIn(['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker'])
-  sensor_type: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker';
+  @IsIn(['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker', 'smart_lock'])
+  sensor_type: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker' | 'smart_lock';
 
   @ApiProperty({ description: 'Si el sensor está activo', default: true })
   @IsBoolean()
@@ -35,12 +35,12 @@ export class UpdateSensorDto {
   @ApiProperty({ 
     description: 'Tipo de dispositivo', 
     required: false,
-    enum: ['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker']
+    enum: ['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker', 'smart_lock']
   })
   @IsOptional()
   @IsString()
-  @IsIn(['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker'])
-  sensor_type?: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker';
+  @IsIn(['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker', 'smart_lock'])
+  sensor_type?: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker' | 'smart_lock';
 
   @ApiProperty({ description: 'Si el sensor está activo', required: false })
   @IsOptional()
@@ -66,12 +66,12 @@ export class CreateSensorForUserDto {
 
   @ApiProperty({ 
     description: 'Tipo de dispositivo', 
-    enum: ['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker']
+    enum: ['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker', 'smart_lock']
   })
   @IsString()
   @IsNotEmpty()
-  @IsIn(['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker'])
-  sensor_type: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker';
+  @IsIn(['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker', 'smart_lock'])
+  sensor_type: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker' | 'smart_lock';
 
   @ApiProperty({ description: 'Si el sensor está activo', default: true })
   @IsBoolean()

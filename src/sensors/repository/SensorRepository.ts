@@ -86,7 +86,7 @@ export class SensorRepository {
     return data as any[];
   }
 
-  async findByUserAndType(userId: string, sensorType: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker'): Promise<Sensor[]> {
+  async findByUserAndType(userId: string, sensorType: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker' | 'smart_lock'): Promise<Sensor[]> {
     const { data, error } = await supabase
       .from('sensors')
       .select('*')

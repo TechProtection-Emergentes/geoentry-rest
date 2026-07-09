@@ -14,7 +14,7 @@ export class Sensor implements SensorRow {
 
   @ApiProperty({ 
     description: 'Tipo de dispositivo', 
-    enum: ['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker']
+    enum: ['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker', 'smart_lock']
   })
   sensor_type: Enums<'device_type_enum'>;
 

@@ -191,7 +191,7 @@ export class SensorService {
     return await this.getSensorById(id);
   }
 
-  async getSensorsByUserAndType(userId: string, sensorType: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker'): Promise<Sensor[]> {
+  async getSensorsByUserAndType(userId: string, sensorType: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker' | 'smart_lock'): Promise<Sensor[]> {
     const { data, error } = await supabase
       .from('sensors')
       .select('*')
@@ -231,7 +231,7 @@ export class SensorService {
 
   async getAvailableSensorTypes(userId: string): Promise<string[]> {
     // Tipos de sensores permitidos
-    const allTypes: string[] = ['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker'];
+    const allTypes: string[] = ['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker', 'smart_lock'];
     
     // Obtener tipos que el usuario ya tiene
     const { data: existingSensors, error } = await supabase

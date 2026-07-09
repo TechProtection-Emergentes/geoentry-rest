@@ -82,12 +82,12 @@ export class SensorController {
   @ApiParam({ 
     name: 'dataType', 
     description: 'Tipo de sensor',
-    enum: ['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker']
+    enum: ['led_tv', 'smart_light', 'air_conditioner', 'coffee_maker', 'smart_lock']
   })
   @ApiResponse({ status: 200, description: 'Sensores encontrados', type: [Sensor] })
   async getSensorsByUserAndType(
     @Param('userId') userId: string,
-    @Param('dataType') dataType: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker'
+    @Param('dataType') dataType: 'led_tv' | 'smart_light' | 'air_conditioner' | 'coffee_maker' | 'smart_lock'
   ): Promise<Sensor[]> {
     return await this.sensorService.getSensorsByUserAndType(userId, dataType);
   }
