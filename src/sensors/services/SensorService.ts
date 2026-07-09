@@ -126,6 +126,9 @@ export class SensorService {
   }
 
   async updateSensorStatus(id: string, isActive: boolean): Promise<Sensor> {
+    const sensor = await this.getSensorById(id);
+    const wasActive = sensor.isActive;
+
     const updateData: SensorUpdate = {
       isActive: isActive,
       updated_at: new Date().toISOString(),
@@ -138,6 +141,51 @@ export class SensorService {
 
     if (error) {
       throw new Error(`Error updating sensor status: ${error.message}`);
+    }
+
+    // AI Feedback Loop: Detect manual override
+    if (wasActive !== isActive && sensor.user_id) {
+      // Find AI inferences from the last 15 minutes for this user
+      const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+      
+      const { data: recentInferences } = await supabase
+        .from('ai_inference_logs')
+        .select('*')
+        .eq('user_id', sensor.user_id)
+        .gte('created_at', fifteenMinsAgo)
+        .order('created_at', { ascending: false });
+
+      if (recentInferences && recentInferences.length > 0) {
+        // Look for an action targeting this specific sensor with the opposite state
+        for (const log of recentInferences) {
+          const aiResponse = log.ai_response as any;
+          if (aiResponse && aiResponse.actions && Array.isArray(aiResponse.actions)) {
+            const aiAction = aiResponse.actions.find((a: any) => a.deviceId === id);
+            
+            // If AI targeted this device and set it to the opposite of what the user just set it to
+            if (aiAction && aiAction.targetState !== isActive) {
+              console.log(`[AI FEEDBACK] User overrode AI decision for sensor ${sensor.name} (Log: ${log.id})`);
+              
+              // Register the correction
+              await supabase.from('user_feedback_loops').insert({
+                user_id: sensor.user_id,
+                inference_log_id: log.id,
+                feedback_action: 'MANUAL_OVERRIDE',
+                override_details: {
+                  sensor_id: id,
+                  sensor_name: sensor.name,
+                  ai_target_state: aiAction.targetState,
+                  user_overridden_state: isActive,
+                  reason: aiAction.reason
+                }
+              });
+              
+              // Only process the most recent matching inference to avoid duplicate feedback
+              break;
+            }
+          }
+        }
+      }
     }
 
     return await this.getSensorById(id);

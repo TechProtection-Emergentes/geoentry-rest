@@ -40,12 +40,32 @@ export class AiInferenceService {
     snapshot: AiContextSnapshot,
     availableDevices: any[]
   ): Promise<AiInferenceDecision | null> {
+    // Fetch historical feedback corrections
+    const { data: feedbacks } = await supabase
+      .from('user_feedback_loops')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('feedback_action', 'MANUAL_OVERRIDE')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    let historicalCorrections = '';
+    if (feedbacks && feedbacks.length > 0) {
+      historicalCorrections = '\\n\\nHISTORIAL DE CORRECCIONES DEL USUARIO (MUY IMPORTANTE):\\n';
+      feedbacks.forEach(f => {
+        const details = f.override_details as any;
+        if (details) {
+          historicalCorrections += `- El usuario corrigió tu decisión previa para el sensor "${details.sensor_name}". Tú querías ${details.ai_target_state ? 'ENCENDERLO' : 'APAGARLO'} pero el usuario decidió ${details.user_overridden_state ? 'ENCENDERLO' : 'APAGARLO'}. Aprende de este error.\\n`;
+        }
+      });
+    }
+
     const prompt = `
       Actúa como el cerebro domótico de GeoEntry. El usuario acaba de ingresar a la zona de proximidad (${snapshot.currentLocationName}).
       Contexto actual:
       - Hora: ${snapshot.time}
       - Es fin de semana: ${snapshot.isWeekend}
-      - Historial de hábitos del usuario: ${snapshot.userHabitsSummary}
+      - Hábitos actuales: ${snapshot.userHabitsSummary}${historicalCorrections}
       - Dispositivos disponibles: ${JSON.stringify(availableDevices)}
 
       Debes decidir qué dispositivos encender o apagar en base a estos datos.
