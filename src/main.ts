@@ -6,7 +6,7 @@ import { SwaggerConfig } from './config/SwaggerConfig';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
+
   app.setGlobalPrefix('api');
 
   app.enableCors({
@@ -25,9 +25,9 @@ async function bootstrap() {
   SwaggerConfig.setup(app);
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
-  
-  const baseUrl = 'https://geoentry-rest-api.onrender.com'
-  
+
+  const baseUrl = 'https://geoentry-rest-production.up.railway.app'
+
   console.log(`🚀 Application is running on: ${baseUrl}`);
   console.log(`📚 Swagger UI is available at: ${baseUrl}/swagger-ui`);
   console.log(`� API endpoints available at: ${baseUrl}/api/`);
